@@ -11,5 +11,12 @@ backend/db.sqlite3
 # macOS
 .DS_Store
 
+# VS Code
+.vscode/
+
 # React (future)
 frontend/node_modules/
+frontend/build/
+
+#Environment
+.env
