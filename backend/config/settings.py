@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'apps.jobs',
     "apps.applications",
+    "drf_spectacular",
 ]
 
 MIDDLEWARE = [
@@ -132,11 +133,27 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+
+    "DEFAULT_SCHEMA_CLASS": (
+        "drf_spectacular.openapi.AutoSchema"
+    ),
+
+    "EXCEPTION_HANDLER": (
+        "apps.common.exceptions.custom_exception_handler"
+    ),
 }
 
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+SPECTACULAR_SETTINGS = {
+
+    "TITLE": "Job Portal API",
+
+    "DESCRIPTION": (
+        "Backend APIs for the AI-Powered Job Portal."
+    ),
+
+    "VERSION": "1.0.0",
+
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 MEDIA_URL = "/media/"

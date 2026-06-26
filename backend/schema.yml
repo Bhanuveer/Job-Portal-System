@@ -1,0 +1,412 @@
+openapi: 3.0.3
+info:
+  title: Job Portal API
+  version: 1.0.0
+  description: Backend APIs for the AI-Powered Job Portal.
+paths:
+  /api/applications/{application_id}/status/:
+    patch:
+      operationId: applications_status_partial_update
+      parameters:
+      - in: path
+        name: application_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - applications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/applications/my/:
+    get:
+      operationId: applications_my_retrieve
+      tags:
+      - applications
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: Authenticate user and return JWT tokens.
+      summary: Login
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Login'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Login'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: Login successful
+        '400':
+          description: Invalid credentials
+  /api/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      description: Return authenticated user's profile.
+      summary: My Profile
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: auth_register_create
+      description: Create a new user account.
+      summary: Register User
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Register'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Register'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Register'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+        '400':
+          description: Validation Error
+  /api/jobs/:
+    get:
+      operationId: jobs_retrieve
+      tags:
+      - jobs
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/jobs/{job_id}/:
+    get:
+      operationId: jobs_retrieve_2
+      parameters:
+      - in: path
+        name: job_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - jobs
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/jobs/{job_id}/applications/:
+    get:
+      operationId: jobs_applications_retrieve
+      parameters:
+      - in: path
+        name: job_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - jobs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/jobs/{job_id}/apply/:
+    post:
+      operationId: jobs_apply_create
+      parameters:
+      - in: path
+        name: job_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - jobs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/jobs/{job_id}/delete/:
+    delete:
+      operationId: jobs_delete_destroy
+      parameters:
+      - in: path
+        name: job_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - jobs
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/jobs/{job_id}/update/:
+    put:
+      operationId: jobs_update_update
+      parameters:
+      - in: path
+        name: job_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - jobs
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/jobs/create/:
+    post:
+      operationId: jobs_create_create
+      description: Create a new job posting. Only authenticated recruiters can create
+        jobs.
+      summary: Create Job
+      tags:
+      - Jobs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Job'
+            examples:
+              CreateJob:
+                value:
+                  title: Python Backend Developer
+                  company: Google
+                  location: Bangalore
+                  description: Build scalable backend APIs.
+                  skills: Python, Django, DRF
+                  salary: 1200000
+                  employment_type: full_time
+                  experience_level: junior
+                  is_active: true
+                summary: Create Job
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Job'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Job'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+          description: ''
+        '400':
+          description: Validation Error
+        '401':
+          description: Authentication required
+        '403':
+          description: Only recruiters can create jobs
+components:
+  schemas:
+    EmploymentTypeEnum:
+      enum:
+      - full_time
+      - part_time
+      - internship
+      - contract
+      type: string
+      description: |-
+        * `full_time` - Full Time
+        * `part_time` - Part Time
+        * `internship` - Internship
+        * `contract` - Contract
+    ExperienceLevelEnum:
+      enum:
+      - fresher
+      - junior
+      - mid
+      - senior
+      type: string
+      description: |-
+        * `fresher` - Fresher
+        * `junior` - Junior
+        * `mid` - Mid
+        * `senior` - Senior
+    Job:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        recruiter:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 255
+        company:
+          type: string
+          maxLength: 255
+        location:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        skills:
+          type: string
+          description: Comma separated skills
+        salary:
+          type: integer
+          maximum: 4294967295
+          minimum: 1000
+          format: int64
+        employment_type:
+          $ref: '#/components/schemas/EmploymentTypeEnum'
+        experience_level:
+          $ref: '#/components/schemas/ExperienceLevelEnum'
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - company
+      - created_at
+      - description
+      - id
+      - location
+      - recruiter
+      - salary
+      - skills
+      - title
+      - updated_at
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          writeOnly: true
+      required:
+      - email
+      - password
+    Register:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone_number:
+          type: string
+          maxLength: 15
+        profile_image:
+          type: string
+          format: uri
+          nullable: true
+      required:
+      - email
+      - id
+      - name
+      - password
+    RoleEnum:
+      enum:
+      - candidate
+      - recruiter
+      type: string
+      description: |-
+        * `candidate` - Candidate
+        * `recruiter` - Recruiter
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          readOnly: true
+        phone_number:
+          type: string
+          readOnly: true
+        profile_image:
+          type: string
+          format: uri
+          readOnly: true
+          nullable: true
+      required:
+      - email
+      - id
+      - name
+      - phone_number
+      - profile_image
+      - role
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

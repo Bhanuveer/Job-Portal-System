@@ -1,26 +1,26 @@
-from django.db import models
 from django.conf import settings
+from django.core.validators import MinValueValidator
+from django.db import models
+
 
 class Job(models.Model):
 
-    EMPLOYMENT_TYPES = (
-        ("full_time", "Full Time"),
-        ("part_time", "Part Time"),
-        ("internship", "Internship"),
-        ("contract", "Contract"),
-    )
+    class EmploymentType(models.TextChoices):
+        FULL_TIME = "full_time", "Full Time"
+        PART_TIME = "part_time", "Part Time"
+        INTERNSHIP = "internship", "Internship"
+        CONTRACT = "contract", "Contract"
 
-    EXPERIENCE_LEVELS = (
-        ("fresher", "Fresher"),
-        ("junior", "Junior"),
-        ("mid", "Mid"),
-        ("senior", "Senior"),
-    )
+    class ExperienceLevel(models.TextChoices):
+        FRESHER = "fresher", "Fresher"
+        JUNIOR = "junior", "Junior"
+        MID = "mid", "Mid"
+        SENIOR = "senior", "Senior"
 
     recruiter = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="jobs"
+        related_name="jobs",
     )
 
     title = models.CharField(max_length=255)
@@ -31,20 +31,24 @@ class Job(models.Model):
 
     description = models.TextField()
 
-    skills = models.TextField()
+    skills = models.TextField(
+        help_text="Comma separated skills"
+    )
 
-    salary = models.PositiveIntegerField()
+    salary = models.PositiveIntegerField(
+        validators=[MinValueValidator(1000)]
+    )
 
     employment_type = models.CharField(
         max_length=20,
-        choices=EMPLOYMENT_TYPES,
-        default="full_time"
+        choices=EmploymentType.choices,
+        default=EmploymentType.FULL_TIME,
     )
 
     experience_level = models.CharField(
         max_length=20,
-        choices=EXPERIENCE_LEVELS,
-        default="fresher"
+        choices=ExperienceLevel.choices,
+        default=ExperienceLevel.FRESHER,
     )
 
     is_active = models.BooleanField(default=True)
@@ -53,5 +57,8 @@ class Job(models.Model):
 
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ["-created_at"]
+
     def __str__(self):
-        return self.title
+        return f"{self.title} - {self.company}"

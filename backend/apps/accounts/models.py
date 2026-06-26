@@ -1,4 +1,7 @@
-from django.contrib.auth.models import (AbstractUser,BaseUserManager,)
+from django.contrib.auth.models import (
+    AbstractUser,
+    BaseUserManager,
+)
 from django.db import models
 
 
@@ -7,7 +10,7 @@ class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
 
         if not email:
-            raise ValueError("Email is required")
+            raise ValueError("The Email field must be set.")
 
         email = self.normalize_email(email)
 
@@ -17,6 +20,9 @@ class UserManager(BaseUserManager):
         )
 
         user.set_password(password)
+
+        # Validate model before saving
+        user.full_clean()
 
         user.save(using=self._db)
 
@@ -28,9 +34,19 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
 
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError(
+                "Superuser must have is_staff=True."
+            )
+
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError(
+                "Superuser must have is_superuser=True."
+            )
+
         return self.create_user(
-            email,
-            password,
+            email=email,
+            password=password,
             **extra_fields
         )
 
@@ -41,19 +57,20 @@ class User(AbstractUser):
 
     username = None
 
-    ROLE_CHOICES = (
-        ("candidate", "Candidate"),
-        ("recruiter", "Recruiter"),
-    )
+    class Role(models.TextChoices):
+        CANDIDATE = "candidate", "Candidate"
+        RECRUITER = "recruiter", "Recruiter"
 
     name = models.CharField(max_length=255)
 
-    email = models.EmailField(unique=True)
+    email = models.EmailField(
+        unique=True
+    )
 
     role = models.CharField(
         max_length=20,
-        choices=ROLE_CHOICES,
-        default="candidate"
+        choices=Role.choices,
+        default=Role.CANDIDATE,
     )
 
     phone_number = models.CharField(
@@ -67,12 +84,26 @@ class User(AbstractUser):
         null=True
     )
 
-    is_verified = models.BooleanField(default=False)
+    is_verified = models.BooleanField(
+        default=False
+    )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
 
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
 
     USERNAME_FIELD = "email"
 
     REQUIRED_FIELDS = ["name"]
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+
+    def __str__(self):
+        return self.email

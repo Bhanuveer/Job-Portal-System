@@ -1,15 +1,22 @@
-from rest_framework import serializers
-from .models import User
 from django.contrib.auth import authenticate
+from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from .models import User
 
 
 class RegisterSerializer(serializers.ModelSerializer):
 
+    password = serializers.CharField(
+        write_only=True,
+        validators=[validate_password]
+    )
+
     class Meta:
         model = User
-
         fields = [
+            "id",
             "name",
             "email",
             "password",
@@ -17,25 +24,27 @@ class RegisterSerializer(serializers.ModelSerializer):
             "phone_number",
             "profile_image",
         ]
+        read_only_fields = ["id"]
 
-        extra_kwargs = {
-            "password": {
-                "write_only": True
-            }
-        }
+    def validate_email(self, value):
+
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                "User with this email already exists."
+            )
+
+        return value
 
     def create(self, validated_data):
 
         password = validated_data.pop("password")
 
-        user = User(**validated_data)
+        return User.objects.create_user(
+            password=password,
+            **validated_data
+        )
 
-        user.set_password(password)
 
-        user.save()
-
-        return user
-    
 class LoginSerializer(serializers.Serializer):
 
     email = serializers.EmailField()
@@ -44,12 +53,9 @@ class LoginSerializer(serializers.Serializer):
 
     def validate(self, attrs):
 
-        email = attrs.get("email")
-        password = attrs.get("password")
-
         user = authenticate(
-            username=email,
-            password=password
+            username=attrs["email"],
+            password=attrs["password"]
         )
 
         if not user:
@@ -67,9 +73,10 @@ class LoginSerializer(serializers.Serializer):
                 "name": user.name,
                 "email": user.email,
                 "role": user.role,
-            }
+            },
         }
-    
+
+
 class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -82,3 +89,4 @@ class UserSerializer(serializers.ModelSerializer):
             "phone_number",
             "profile_image",
         ]
+        read_only_fields = fields
